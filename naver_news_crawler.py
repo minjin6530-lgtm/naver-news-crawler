@@ -4,13 +4,14 @@
 """
 
 import os
+import csv
 import time
 import requests
-import pandas as pd
 from datetime import datetime, timedelta
 
 # ── 설정값 ──────────────────────────────────────────────
 KEYWORDS = [
+    # 업종 키워드
     "외식업 정책",
     "배달앱 수수료",
     "배달 포장 주문",
@@ -20,11 +21,13 @@ KEYWORDS = [
     "키오스크 테이블오더",
     "프랜차이즈",
     "POS 솔루션",
+    # 경기/구조 키워드
     "외식업 경기",
     "음식점 폐업",
     "배달 시장",
     "외식 물가",
     "카페 시장",
+    # 경쟁사명
     "배달의민족",
     "쿠팡이츠",
     "요기요",
@@ -35,6 +38,7 @@ KEYWORDS = [
     "하이오더",
     "페이히어",
     "오케이포스",
+    # 트렌드 키워드
     "AI 에이전트 예약",
     "AI 에이전트 주문",
 ]
@@ -42,8 +46,8 @@ KEYWORDS = [
 DATE_FROM = (datetime.today() - timedelta(days=30)).strftime("%Y-%m-%d")
 DATE_TO   = datetime.today().strftime("%Y-%m-%d")
 
-DISPLAY   = 100   # 키워드당 최대 수집 건수 (최대 100)
-OUTPUT    = "naver_news_raw.csv"
+DISPLAY = 100   # 키워드당 최대 수집 건수 (API 최대 100)
+OUTPUT  = "naver_news_raw.csv"
 # ────────────────────────────────────────────────────────
 
 CLIENT_ID     = os.environ.get("NAVER_CLIENT_ID", "")
@@ -53,8 +57,7 @@ if not CLIENT_ID or not CLIENT_SECRET:
     raise EnvironmentError("NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 환경변수를 설정하세요.")
 
 
-def search_news(keyword: str, display: int = 100) -> list[dict]:
-    """네이버 뉴스 검색 API 호출 → 기사 리스트 반환"""
+def search_news(keyword: str, display: int = 100) -> list:
     url = "https://openapi.naver.com/v1/search/news.json"
     headers = {
         "X-Naver-Client-Id": CLIENT_ID,
@@ -95,19 +98,23 @@ def parse_date(pub_date_str: str) -> str:
         return pub_date_str
 
 
+def clean_html(text: str) -> str:
+    return text.replace("<b>", "").replace("</b>", "").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'")
+
+
 def in_date_range(date_str: str, date_from: str, date_to: str) -> bool:
     return date_from <= date_str <= date_to
 
 
 def main():
-    date_from = DATE_FROM
-    date_to   = DATE_TO
-    print(f"수집 기간: {date_from} ~ {date_to}")
-    print(f"키워드 수: {len(KEYWORDS)}")
+    print(f"수집 기간: {DATE_FROM} ~ {DATE_TO}")
+    print(f"키워드 수: {len(KEYWORDS)}\n")
 
-    all_rows = []
+    fieldnames = ["keyword", "title", "description", "originallink", "link", "pubDate"]
+    rows = []
+
     for kw in KEYWORDS:
-        print(f"  검색 중: [{kw}]", end=" ", flush=True)
+        print(f"  [{kw}]", end=" ", flush=True)
         try:
             items = search_news(kw, display=DISPLAY)
         except Exception as e:
@@ -117,27 +124,30 @@ def main():
         kept = 0
         for item in items:
             pub = parse_date(item.get("pubDate", ""))
-            if not in_date_range(pub, date_from, date_to):
+            if not in_date_range(pub, DATE_FROM, DATE_TO):
                 continue
-            all_rows.append({
-                "keyword":       kw,
-                "title":         item.get("title", "").replace("<b>", "").replace("</b>", ""),
-                "description":   item.get("description", "").replace("<b>", "").replace("</b>", ""),
-                "originallink":  item.get("originallink", ""),
-                "link":          item.get("link", ""),
-                "pubDate":       pub,
+            rows.append({
+                "keyword":      kw,
+                "title":        clean_html(item.get("title", "")),
+                "description":  clean_html(item.get("description", "")),
+                "originallink": item.get("originallink", ""),
+                "link":         item.get("link", ""),
+                "pubDate":      pub,
             })
             kept += 1
         print(f"{kept}건")
         time.sleep(0.1)
 
-    if not all_rows:
-        print("수집된 기사가 없습니다.")
+    if not rows:
+        print("\n수집된 기사가 없습니다.")
         return
 
-    df = pd.DataFrame(all_rows)
-    df.to_csv(OUTPUT, index=False, encoding="utf-8-sig")
-    print(f"\n저장 완료 → {OUTPUT}  ({len(df)}행)")
+    with open(OUTPUT, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print(f"\n저장 완료 → {OUTPUT}  (총 {len(rows)}건)")
 
 
 if __name__ == "__main__":
