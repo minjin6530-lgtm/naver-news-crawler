@@ -43,7 +43,7 @@ KEYWORDS = [
     "AI 에이전트 주문",
 ]
 
-DATE_FROM = (datetime.today() - timedelta(days=30)).strftime("%Y-%m-%d")
+DATE_FROM = datetime.today().strftime("%Y-%m-%d")
 DATE_TO   = datetime.today().strftime("%Y-%m-%d")
 
 DISPLAY = 100   # 키워드당 최대 수집 건수 (API 최대 100)
