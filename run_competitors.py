@@ -17,6 +17,7 @@ industries/competitors.py의 경쟁사 리스트를 업종별로 순서대로 �
 import sys
 import naver_news_engine as engine
 from industries.competitors import COMPETITORS
+from industries.exclusions import INDUSTRY_EXCLUSIONS
 
 # ── 설정 ────────────────────────────────────────────────────
 DATE_FROM              = "2026-07-01"
@@ -56,6 +57,12 @@ COMPETITOR_MAIN_INTERESTS = """
 
 
 def build_config(category, keywords):
+    exclusions = INDUSTRY_EXCLUSIONS.get(category, {})
+    main_interests = COMPETITOR_MAIN_INTERESTS
+    claude_note = exclusions.get("claude_note")
+    if claude_note:
+        main_interests += f"\n[업종별 추가 판단 기준 — {category}]\n{claude_note}\n"
+
     return {
         "category":               category,
         "date_from":              DATE_FROM,
@@ -66,8 +73,10 @@ def build_config(category, keywords):
         "keyword_groups": [
             ("경쟁사", "경쟁사", keywords),
         ],
-        "main_interests":  COMPETITOR_MAIN_INTERESTS,
-        "output_prefix":   f"competitor_{category}",
+        "main_interests":    main_interests,
+        "output_prefix":     f"competitor_{category}",
+        "extra_title_kws":   exclusions.get("title", []),
+        "extra_context_kws": exclusions.get("context", []),
     }
 
 
