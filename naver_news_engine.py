@@ -38,6 +38,17 @@ EXCLUDE_TITLE_KEYWORDS = [
 # ──────────────────────────────────────────────────────────────
 EXCLUDE_CONTEXT_KEYWORDS = [
     "생리대", "코스피", "주가",
+    # 전 업종 공통: 기술/투자/산업 일반 노이즈
+    "반도체", "컨퍼런스 참가", "IT 기업 인사", "임원 선임",
+]
+
+# ──────────────────────────────────────────────────────────────
+# 공통 제외 키워드 — 레이어 3: 제목에서 전 업종 공통 노이즈
+# (레이어 1보다 넓은 범위, 업종 무관하게 항상 제외)
+# ──────────────────────────────────────────────────────────────
+EXCLUDE_TITLE_COMMON_EXTRA = [
+    "AI 모델 출시", "AI 모델 공개",
+    "신차 발표", "신차 공개",
 ]
 
 # ──────────────────────────────────────────────────────────────
@@ -91,12 +102,7 @@ def strip_tags(text):
 
 
 def is_excluded(title, description, extra_title_kws=None, extra_context_kws=None):
-    """
-    공통 제외 필터 + 업종별 추가 제외 키워드 지원
-    extra_title_kws: 업종별 추가 제목 제외 키워드 리스트
-    extra_context_kws: 업종별 추가 컨텍스트 제외 키워드 리스트
-    """
-    title_kws = EXCLUDE_TITLE_KEYWORDS + (extra_title_kws or [])
+    title_kws   = EXCLUDE_TITLE_KEYWORDS + EXCLUDE_TITLE_COMMON_EXTRA + (extra_title_kws or [])
     context_kws = EXCLUDE_CONTEXT_KEYWORDS + (extra_context_kws or [])
 
     if any(kw in title for kw in title_kws):
