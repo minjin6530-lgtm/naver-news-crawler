@@ -348,8 +348,6 @@ def run(config: dict):
                 if r["link"] in seen_links:
                     continue
                 seen_links.add(r["link"])
-                # category 컬럼은 run() 단계에서 주입
-                r["category"] = category
                 all_results.append(r)
                 new += 1
             print(f"  {kw}: {len(rows)}건 / {new}건 신규 (누적 {len(all_results)}건)")
