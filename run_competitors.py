@@ -57,11 +57,14 @@ COMPETITOR_MAIN_INTERESTS = """
 
 
 def build_config(category, keywords):
-    exclusions = INDUSTRY_EXCLUSIONS.get(category, {})
-    main_interests = COMPETITOR_MAIN_INTERESTS
-    claude_note = exclusions.get("claude_note")
+    excl       = INDUSTRY_EXCLUSIONS.get(category, {})
+    extra_t    = excl.get("title", [])
+    extra_c    = excl.get("context", [])
+    claude_note = excl.get("claude_note", "")
+
+    interests = COMPETITOR_MAIN_INTERESTS
     if claude_note:
-        main_interests += f"\n[업종별 추가 판단 기준 — {category}]\n{claude_note}\n"
+        interests += f"\n[{category} 업종 추가 판단 기준]\n{claude_note}\n"
 
     return {
         "category":               category,
@@ -73,10 +76,10 @@ def build_config(category, keywords):
         "keyword_groups": [
             ("경쟁사", "경쟁사", keywords),
         ],
-        "main_interests":    main_interests,
-        "output_prefix":     f"competitor_{category}",
-        "extra_title_kws":   exclusions.get("title", []),
-        "extra_context_kws": exclusions.get("context", []),
+        "extra_title_kws":  extra_t,
+        "extra_context_kws": extra_c,
+        "main_interests":   interests,
+        "output_prefix":    f"competitor_{category}",
     }
 
 
