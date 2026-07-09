@@ -399,20 +399,9 @@ STEP 3. 특수 뉴스사 추가 필터링
 - 네이버 플레이스와 직접 연관 없는 업계 내부용 기사
 - 전국 단위 트렌드가 아닌 특정 지역 1~2개만 다루는 기사
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 4. 최종 엑셀 생성
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-모든 배치 처리 후 ★★ / ★★★ 기사만 하나의 엑셀(파일명: {output_prefix}_final.xlsx)로 합칠 것.
-
-최종 컬럼 순서:
-source_type | search_keyword | pubDate | title_korean | summary_korean | importance | source | link
-
-엑셀 서식:
-- 헤더: 배경 #305496, 흰 글씨, 굵게, 가운데 정렬
-- 본문: Arial 10pt, 위쪽 정렬, 줄바꿈, 행 높이 60
-- 열 너비: source_type(8) search_keyword(18) pubDate(11) title_korean(42) summary_korean(48) importance(8) source(14) link(38)
-- link 컬럼: 하이퍼링크 처리 (파란색 밑줄)
-- 1행 freeze, 전체 auto_filter 적용
+주의: 엑셀 생성은 이 업종 하나만 처리하고 바로 만들지 말 것.
+전체 업종 처리가 모두 끝난 뒤 한 번만, 모든 업종을 합쳐 단일 엑셀로 생성한다
+(run_competitors.py 최종 안내 참고). 업종별로 별도 엑셀 파일을 만들지 않는다.
 """)
 
     return all_results

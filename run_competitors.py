@@ -108,10 +108,20 @@ def main():
     print("="*60)
     print("""
 [Claude Code 최종 지시]
-각 업종별 competitor_*_batch*.csv 파일을 읽고
-summary_korean, importance 채운 뒤
-업종별로 또는 전체를 하나의 엑셀(competitors_final.xlsx)로 합칠 것.
-(하나의 시트, 시트 분리 없음)
+모든 업종의 competitor_*_batch*.csv 파일을 읽고 summary_korean, importance를
+채운 뒤, ★★ / ★★★ 기사만 모든 업종을 합쳐 단일 엑셀(competitors_final.xlsx)
+하나로 생성할 것. 하나의 파일, 하나의 시트로만 만들고 업종별로 별도 엑셀
+파일(competitor_<업종>_final.xlsx 등)은 절대 만들지 않는다.
+
+최종 컬럼 순서:
+source_type | search_keyword | pubDate | title_korean | summary_korean | importance | source | link
+
+엑셀 서식:
+- 헤더: 배경 #305496, 흰 글씨, 굵게, 가운데 정렬
+- 본문: Arial 10pt, 위쪽 정렬, 줄바꿈, 행 높이 60
+- 열 너비: source_type(8) search_keyword(18) pubDate(11) title_korean(42) summary_korean(48) importance(8) source(14) link(38)
+- link 컬럼: 하이퍼링크 처리 (파란색 밑줄)
+- 1행 freeze, 전체 auto_filter 적용
 """)
 
 
