@@ -103,13 +103,14 @@ def main():
 summary_korean, importance 채운 뒤
 전체를 하나의 엑셀(competitors_june_final.xlsx)로 합칠 것.
 
-최종 컬럼 순서:
+최종 컬럼 순서 (고정 서식 — build_excel.py FINAL_HEADERS):
 source_type | search_keyword | pubDate | title_korean | link | importance | source | summary_korean
 
 엑셀 서식:
 - 헤더: 배경 #305496, 흰 글씨, 굵게, 가운데 정렬
-- 본문: Arial 10pt, 위쪽 정렬, 줄바꿈 해제, 행 높이 한 줄
-- 열 너비: source_type(10) search_keyword(22) pubDate(13) title_korean(70) link(32) importance(10) source(16) summary_korean(55)
+- 본문: Arial 10pt, 세로 가운데 정렬, 줄바꿈 없이 한 줄, 행 높이는 한 줄 크기
+- 열 너비: title_korean 등은 내용이 잘리지 않도록 자동 산정, link는 좁게(10),
+  summary_korean은 폭을 줄여 고정(50) — build_excel.py의 build_final_excel()이 처리
 - link 컬럼: 하이퍼링크 처리 (파란색 밑줄)
 - 1행 freeze, 전체 auto_filter 적용
 - 하나의 시트, 시트 분리 없음
