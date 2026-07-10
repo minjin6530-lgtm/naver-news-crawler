@@ -73,7 +73,7 @@ def build_config(category, keywords):
         "extra_title_kws":  extra_t,
         "extra_context_kws": extra_c,
         "main_interests":   interests,
-        "output_prefix":    f"competitor_june_{category}",
+        "output_prefix":    f"competitor_june_{category}".replace("/", "_"),
     }
 
 
