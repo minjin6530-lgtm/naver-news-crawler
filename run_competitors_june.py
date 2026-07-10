@@ -19,9 +19,9 @@ from industries.exclusions import INDUSTRY_EXCLUSIONS
 # ── 이 파일 전용 설정 ────────────────────────────────────────
 DATE_FROM              = "2026-06-26"
 DATE_TO                = "2026-06-30"
-MAX_ARTICLES_PER_QUERY = 10
+MAX_ARTICLES_PER_QUERY = 100  # 키워드당 최대 100건으로 확대
 BATCH_SIZE             = 30
-MAX_BATCHES_PER_RUN    = 8
+MAX_BATCHES_PER_RUN    = 15   # 배치 수도 넉넉하게
 
 COMPETITOR_MAIN_INTERESTS = """
 [경쟁사 기사 필터링 기준 — 전 업종 공통]
