@@ -3,12 +3,13 @@ openpyxl 없이 표준 라이브러리만으로 .xlsx(OOXML)를 생성하는 최
 네트워크가 차단된 환경(외부 패키지 설치 불가)에서 경쟁사 리포트용 엑셀을
 만들기 위한 용도로 작성됨. 지원 범위:
   - 헤더 행 서식(배경색, 굵게, 흰 글씨, 가운데 정렬)
-  - 본문 서식(글꼴, 줄바꿈, 위쪽 정렬, 행 높이)
-  - 열 너비 지정
+  - 본문 서식(글꼴, 세로 가운데 정렬, 줄바꿈 없는 한 줄 행 높이)
+  - 열 너비 자동 산정(내용이 잘리지 않도록 실제 텍스트 길이 기준)
   - link 컬럼 실제 하이퍼링크(파란색 밑줄)
   - 1행 freeze, 전체 autofilter
 """
 
+import unicodedata
 import zipfile
 from xml.sax.saxutils import escape, quoteattr
 
@@ -24,6 +25,30 @@ def _col_letter(idx: int) -> str:
 
 def _esc(text: str) -> str:
     return escape("" if text is None else str(text))
+
+
+def _display_width(text) -> float:
+    """한글 등 전각 문자는 반각의 약 2배 폭으로 계산 (열 너비 자동 산정용)."""
+    text = "" if text is None else str(text)
+    width = 0.0
+    for ch in text:
+        width += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+    return width
+
+
+EXCEL_MAX_COL_WIDTH = 255  # OOXML/Excel의 열 너비 상한
+
+
+def auto_col_widths(headers, rows, min_width=8, padding=2):
+    """각 컬럼의 헤더/본문 중 가장 넓은 셀 기준으로 열 너비를 계산해
+    잘리는 셀 없이 한 줄에 다 보이도록 한다. Excel 열 너비 상한(255)은 넘지 않는다."""
+    widths = {}
+    for h in headers:
+        longest = _display_width(h)
+        for row in rows:
+            longest = max(longest, _display_width(row.get(h, "")))
+        widths[h] = min(EXCEL_MAX_COL_WIDTH, max(min_width, longest + padding))
+    return widths
 
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -68,16 +93,16 @@ STYLES_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
 <cellXfs count="4">
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0">
-  <alignment vertical="top" wrapText="1"/>
+  <alignment vertical="center"/>
 </xf>
 <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">
   <alignment horizontal="center" vertical="center"/>
 </xf>
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">
-  <alignment vertical="top" wrapText="1"/>
+  <alignment vertical="center"/>
 </xf>
 <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1">
-  <alignment vertical="top" wrapText="1"/>
+  <alignment vertical="center"/>
 </xf>
 </cellXfs>
 </styleSheet>"""
@@ -87,7 +112,7 @@ STYLE_BODY = 2
 STYLE_LINK = 3
 
 
-def write_xlsx(path, headers, col_widths, rows, link_col, row_height=60):
+def write_xlsx(path, headers, col_widths, rows, link_col, row_height=15):
     """
     headers: [str, ...] 컬럼명 (표시 순서)
     col_widths: {header: width}
@@ -108,7 +133,7 @@ def write_xlsx(path, headers, col_widths, rows, link_col, row_height=60):
         % (_col_letter(i), STYLE_HEADER, _esc(h))
         for i, h in enumerate(headers)
     )
-    sheet_rows = ['<row r="1" ht="20" customHeight="1">%s</row>' % header_cells]
+    sheet_rows = ['<row r="1" ht="%d" customHeight="1">%s</row>' % (row_height, header_cells)]
 
     hyperlinks = []
     rels = []
@@ -184,12 +209,11 @@ FINAL_HEADERS = [
     "source_type", "search_keyword", "pubDate", "title_korean",
     "summary_korean", "importance", "source", "link",
 ]
-FINAL_COL_WIDTHS = {
-    "source_type": 8, "search_keyword": 18, "pubDate": 11, "title_korean": 42,
-    "summary_korean": 48, "importance": 8, "source": 14, "link": 38,
-}
 
 
 def build_final_excel(path, rows):
-    """rows: FINAL_HEADERS 키를 가진 dict 리스트 (importance ★★ 이상만 포함되어야 함)"""
-    write_xlsx(path, FINAL_HEADERS, FINAL_COL_WIDTHS, rows, link_col="link")
+    """rows: FINAL_HEADERS 키를 가진 dict 리스트 (importance ★★ 이상만 포함되어야 함).
+    열 너비는 실제 내용 기준으로 자동 산정해 title_korean 등이 잘리지 않게 하고,
+    행 높이는 줄바꿈 없는 한 줄 높이로 고정한다."""
+    col_widths = auto_col_widths(FINAL_HEADERS, rows)
+    write_xlsx(path, FINAL_HEADERS, col_widths, rows, link_col="link", row_height=15)

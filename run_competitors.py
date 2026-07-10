@@ -120,8 +120,9 @@ source_type | search_keyword | pubDate | title_korean | summary_korean | importa
 
 엑셀 서식:
 - 헤더: 배경 #305496, 흰 글씨, 굵게, 가운데 정렬
-- 본문: Arial 10pt, 위쪽 정렬, 줄바꿈, 행 높이 60
-- 열 너비: source_type(8) search_keyword(18) pubDate(11) title_korean(42) summary_korean(48) importance(8) source(14) link(38)
+- 본문: Arial 10pt, 세로 가운데 정렬, 줄바꿈 없이 한 줄, 행 높이는 한 줄 크기
+- 열 너비: 셀 내용이 잘리지 않도록 실제 텍스트 길이 기준으로 자동 산정
+  (build_excel.py의 build_final_excel()이 처리)
 - link 컬럼: 하이퍼링크 처리 (파란색 밑줄)
 - 1행 freeze, 전체 auto_filter 적용
 """)
