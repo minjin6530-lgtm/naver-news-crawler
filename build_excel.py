@@ -205,15 +205,25 @@ def write_xlsx(path, headers, col_widths, rows, link_col, row_height=15):
             z.writestr("xl/worksheets/_rels/sheet1.xml.rels", sheet_rels_xml)
 
 
+# 표준 서식 (사용자 요청 기준 고정 — 이후 파일 요청 시 항상 이 순서/너비를 따른다)
 FINAL_HEADERS = [
     "source_type", "search_keyword", "pubDate", "title_korean",
-    "summary_korean", "importance", "source", "link",
+    "link", "importance", "source", "summary_korean",
 ]
+
+# title_korean/source_type/search_keyword/pubDate/importance/source는 내용 기준
+# 자동 너비. link는 클릭해서 이동하는 용도라 좁게, summary_korean은 한눈에
+# 훑어보도록 폭을 줄여 고정한다 (내용 전체는 셀에 남아있고 필요하면 셀 너비만
+# 늘리면 됨. 자동 줄바꿈은 쓰지 않음).
+FINAL_COL_OVERRIDES = {
+    "link": 10,
+    "summary_korean": 50,
+}
 
 
 def build_final_excel(path, rows):
     """rows: FINAL_HEADERS 키를 가진 dict 리스트 (importance ★★ 이상만 포함되어야 함).
-    열 너비는 실제 내용 기준으로 자동 산정해 title_korean 등이 잘리지 않게 하고,
-    행 높이는 줄바꿈 없는 한 줄 높이로 고정한다."""
+    열 순서/너비는 FINAL_HEADERS·FINAL_COL_OVERRIDES 기준 고정 서식을 따른다."""
     col_widths = auto_col_widths(FINAL_HEADERS, rows)
+    col_widths.update(FINAL_COL_OVERRIDES)
     write_xlsx(path, FINAL_HEADERS, col_widths, rows, link_col="link", row_height=15)

@@ -115,14 +115,14 @@ def main():
 하나로 생성할 것. 하나의 파일, 하나의 시트로만 만들고 업종별로 별도 엑셀
 파일(competitor_<업종>_final.xlsx 등)은 절대 만들지 않는다.
 
-최종 컬럼 순서:
-source_type | search_keyword | pubDate | title_korean | summary_korean | importance | source | link
+최종 컬럼 순서 (고정 서식 — build_excel.py FINAL_HEADERS):
+source_type | search_keyword | pubDate | title_korean | link | importance | source | summary_korean
 
 엑셀 서식:
 - 헤더: 배경 #305496, 흰 글씨, 굵게, 가운데 정렬
 - 본문: Arial 10pt, 세로 가운데 정렬, 줄바꿈 없이 한 줄, 행 높이는 한 줄 크기
-- 열 너비: 셀 내용이 잘리지 않도록 실제 텍스트 길이 기준으로 자동 산정
-  (build_excel.py의 build_final_excel()이 처리)
+- 열 너비: title_korean 등은 내용이 잘리지 않도록 자동 산정, link는 좁게(10),
+  summary_korean은 폭을 줄여 고정(50) — build_excel.py의 build_final_excel()이 처리
 - link 컬럼: 하이퍼링크 처리 (파란색 밑줄)
 - 1행 freeze, 전체 auto_filter 적용
 """)
